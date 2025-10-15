@@ -31,16 +31,8 @@ final class AppDependencyContainer {
         self.domainFactory = DomainFactory(dataFactory: dataFactory)
         self.presentationFactory = PresentationFactory(domainFactory: domainFactory)
     }
-
-    // MARK: - ViewModels
-
-    /// Provides a ViewModel for the appliance list screen.
-    var applianceListViewModel: ApplianceListViewModel {
-        presentationFactory.applianceListViewModel
-    }
-
-    /// Provides a ViewModel for the camera/photo picker screen.
-    var cameraViewModel: CameraViewModel {
-        presentationFactory.cameraViewModel
+    
+    var presentation: PresentationFactory {
+        presentationFactory
     }
 }

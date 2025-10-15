@@ -74,8 +74,8 @@ struct ApplianceIntegrationTests {
     @MainActor
     func classifyAndSaveFullStack() async throws {
         let (_, container) = try createTestContainer()
-        let cameraViewModel = container.cameraViewModel
-        let listViewModel = container.applianceListViewModel
+        let cameraViewModel = container.presentation.cameraViewModel
+        let listViewModel = container.presentation.applianceListViewModel
 
         // Start with empty list
         await listViewModel.loadAppliances()
@@ -108,8 +108,8 @@ struct ApplianceIntegrationTests {
     @MainActor
     func loadAppliancesReturnsDTO() async throws {
         let (_, container) = try createTestContainer()
-        let cameraViewModel = container.cameraViewModel
-        let listViewModel = container.applianceListViewModel
+        let cameraViewModel = container.presentation.cameraViewModel
+        let listViewModel = container.presentation.applianceListViewModel
 
         // Save multiple appliances
         for _ in 0..<3 {
@@ -141,8 +141,8 @@ struct ApplianceIntegrationTests {
     @MainActor
     func deleteApplianceFullStack() async throws {
         let (_, container) = try createTestContainer()
-        let cameraViewModel = container.cameraViewModel
-        let listViewModel = container.applianceListViewModel
+        let cameraViewModel = container.presentation.cameraViewModel
+        let listViewModel = container.presentation.applianceListViewModel
 
         // Create and save appliances
         await cameraViewModel.classifyAndSave(image: createTestImage())
@@ -168,8 +168,8 @@ struct ApplianceIntegrationTests {
     @MainActor
     func dtoComputedPropertiesMatch() async throws {
         let (_, container) = try createTestContainer()
-        let cameraViewModel = container.cameraViewModel
-        let listViewModel = container.applianceListViewModel
+        let cameraViewModel = container.presentation.cameraViewModel
+        let listViewModel = container.presentation.applianceListViewModel
 
         // Save an appliance
         await cameraViewModel.classifyAndSave(image: createTestImage())
@@ -189,9 +189,9 @@ struct ApplianceIntegrationTests {
     @MainActor
     func multipleViewModelsShareData() async throws {
         let (_, container) = try createTestContainer()
-        let cameraViewModel = container.cameraViewModel
-        let listViewModel1 = container.applianceListViewModel
-        let listViewModel2 = container.applianceListViewModel
+        let cameraViewModel = container.presentation.cameraViewModel
+        let listViewModel1 = container.presentation.applianceListViewModel
+        let listViewModel2 = container.presentation.applianceListViewModel
 
         // Save through camera
         await cameraViewModel.classifyAndSave(image: createTestImage())
@@ -212,7 +212,7 @@ struct ApplianceIntegrationTests {
         // This test verifies error propagation through the stack
         // Since we're using in-memory SwiftData, errors are rare, but we verify the structure
         let (_, container) = try createTestContainer()
-        let listViewModel = container.applianceListViewModel
+        let listViewModel = container.presentation.applianceListViewModel
 
         // Load from fresh container should work
         await listViewModel.loadAppliances()

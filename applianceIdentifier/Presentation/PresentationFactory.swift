@@ -9,6 +9,7 @@ import Foundation
 
 /// Factory for creating Presentation layer dependencies (ViewModels).
 /// Constructs ViewModels with their required use case dependencies from the Domain layer.
+@Observable
 @MainActor
 final class PresentationFactory {
     private let domainFactory: DomainFactory

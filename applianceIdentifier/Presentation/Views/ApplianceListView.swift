@@ -9,7 +9,7 @@ import SwiftUI
 import ImageIO
 
 struct ApplianceListView: View {
-    @Environment(AppDependencyContainer.self) private var container
+    @Environment(PresentationFactory.self) private var presentation
     @State private var viewModel: ApplianceListViewModel?
     @State private var showCamera = false
 
@@ -38,7 +38,7 @@ struct ApplianceListView: View {
         }
         .task {
             if viewModel == nil {
-                viewModel = container.applianceListViewModel
+                viewModel = presentation.applianceListViewModel
                 await viewModel?.loadAppliances()
             }
         }

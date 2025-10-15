@@ -30,8 +30,12 @@ struct ApplianceIdentifierApp: App {
     var body: some Scene {
         WindowGroup {
             ApplianceListView()
-                .environment(AppDependencyContainer(modelContainer: sharedModelContainer))
+                .environment(presentation)
         }
         .modelContainer(sharedModelContainer)
+    }
+    
+    private var presentation: PresentationFactory {
+        AppDependencyContainer(modelContainer: sharedModelContainer).presentation
     }
 }

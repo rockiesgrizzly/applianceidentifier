@@ -10,7 +10,7 @@ import PhotosUI
 import ImageIO
 
 struct CameraView: View {
-    @Environment(AppDependencyContainer.self) private var container
+    @Environment(PresentationFactory.self) private var presentation
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel: CameraViewModel?
     @State private var selectedPhoto: PhotosPickerItem?
@@ -37,7 +37,7 @@ struct CameraView: View {
         }
         .task {
             if viewModel == nil {
-                viewModel = container.cameraViewModel
+                viewModel = presentation.cameraViewModel
             }
         }
         .onChange(of: selectedPhoto) { _, newValue in
