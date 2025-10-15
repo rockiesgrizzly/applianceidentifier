@@ -21,21 +21,23 @@ struct ApplianceIntegrationTests {
 
     /// Creates an in-memory test container for isolated testing
     @MainActor
-    private func createTestContainer() throws -> (ModelContainer, AppDependencyContainer) {
-        let schema = Schema([Appliance.self])
-        let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: schema, configurations: [config])
-
-        // Use test ML repository to avoid slow Vision framework calls
-        let dependencyContainer = AppDependencyContainer(
-            modelContainer: container,
-            mlModelRepository: TestMLModelRepository()
-        )
-        return (container, dependencyContainer)
+    private var presentation: PresentationFactory {
+        get throws {
+            let schema = Schema([Appliance.self])
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+            let container = try ModelContainer(for: schema, configurations: [config])
+            
+            // Use test ML repository to avoid slow Vision framework calls
+            let dependencyContainer = AppDependencyContainer(
+                modelContainer: container,
+                mlModelRepository: TestMLModelRepository()
+            )
+            return dependencyContainer.presentation
+        }
     }
 
     /// Creates a test CGImage for classification tests
-    private func createTestImage() -> CGImage {
+    private var testImage: CGImage {
         // Create a 2x2 pixel image with RGBA data (4 bytes per pixel)
         // Each pixel: R, G, B, A (premultiplied alpha)
         let pixelData: [UInt8] = [
@@ -73,16 +75,15 @@ struct ApplianceIntegrationTests {
     @Test("Integration: Classify and save appliance through full stack")
     @MainActor
     func classifyAndSaveFullStack() async throws {
-        let (_, container) = try createTestContainer()
-        let cameraViewModel = container.presentation.cameraViewModel
-        let listViewModel = container.presentation.applianceListViewModel
+        let presentation = try presentation
+        let cameraViewModel = presentation.cameraViewModel
+        let listViewModel = presentation.applianceListViewModel
 
         // Start with empty list
         await listViewModel.loadAppliances()
         #expect(listViewModel.appliances.isEmpty, "Should start with no appliances")
 
         // Classify and save an appliance
-        let testImage = createTestImage()
         await cameraViewModel.classifyAndSave(image: testImage)
 
         // Verify ViewModel received the DTO
@@ -107,13 +108,13 @@ struct ApplianceIntegrationTests {
     @Test("Integration: Load appliances returns DTOs on MainActor")
     @MainActor
     func loadAppliancesReturnsDTO() async throws {
-        let (_, container) = try createTestContainer()
-        let cameraViewModel = container.presentation.cameraViewModel
-        let listViewModel = container.presentation.applianceListViewModel
+        let presentation = try presentation
+        let cameraViewModel = presentation.cameraViewModel
+        let listViewModel = presentation.applianceListViewModel
 
         // Save multiple appliances
         for _ in 0..<3 {
-            await cameraViewModel.classifyAndSave(image: createTestImage())
+            await cameraViewModel.classifyAndSave(image: testImage)
         }
 
         // Load appliances
@@ -140,13 +141,13 @@ struct ApplianceIntegrationTests {
     @Test("Integration: Delete appliance using PersistentIdentifier")
     @MainActor
     func deleteApplianceFullStack() async throws {
-        let (_, container) = try createTestContainer()
-        let cameraViewModel = container.presentation.cameraViewModel
-        let listViewModel = container.presentation.applianceListViewModel
+        let presentation = try presentation
+        let cameraViewModel = presentation.cameraViewModel
+        let listViewModel = presentation.applianceListViewModel
 
         // Create and save appliances
-        await cameraViewModel.classifyAndSave(image: createTestImage())
-        await cameraViewModel.classifyAndSave(image: createTestImage())
+        await cameraViewModel.classifyAndSave(image: testImage)
+        await cameraViewModel.classifyAndSave(image: testImage)
         await listViewModel.loadAppliances()
 
         #expect(listViewModel.appliances.count == 2, "Should start with 2 appliances")
@@ -167,12 +168,12 @@ struct ApplianceIntegrationTests {
     @Test("Integration: DTO computed properties match model values")
     @MainActor
     func dtoComputedPropertiesMatch() async throws {
-        let (_, container) = try createTestContainer()
-        let cameraViewModel = container.presentation.cameraViewModel
-        let listViewModel = container.presentation.applianceListViewModel
+        let presentation = try presentation
+        let cameraViewModel = presentation.cameraViewModel
+        let listViewModel = presentation.applianceListViewModel
 
         // Save an appliance
-        await cameraViewModel.classifyAndSave(image: createTestImage())
+        await cameraViewModel.classifyAndSave(image: testImage)
         await listViewModel.loadAppliances()
 
         let dto = try #require(listViewModel.appliances.first)
@@ -188,22 +189,22 @@ struct ApplianceIntegrationTests {
     @Test("Integration: Multiple ViewModels share same repository data")
     @MainActor
     func multipleViewModelsShareData() async throws {
-        let (_, container) = try createTestContainer()
-        let cameraViewModel = container.presentation.cameraViewModel
-        let listViewModel1 = container.presentation.applianceListViewModel
-        let listViewModel2 = container.presentation.applianceListViewModel
+        let presentation = try presentation
+        let cameraViewModel = presentation.cameraViewModel
+        let listViewModel = presentation.applianceListViewModel
+        let listViewModel2 = presentation.applianceListViewModel
 
         // Save through camera
-        await cameraViewModel.classifyAndSave(image: createTestImage())
+        await cameraViewModel.classifyAndSave(image: testImage)
 
         // Load in both list ViewModels
-        await listViewModel1.loadAppliances()
+        await listViewModel.loadAppliances()
         await listViewModel2.loadAppliances()
 
         // Verify both see the same data
-        #expect(listViewModel1.appliances.count == 1)
+        #expect(listViewModel.appliances.count == 1)
         #expect(listViewModel2.appliances.count == 1)
-        #expect(listViewModel1.appliances[0].persistentID == listViewModel2.appliances[0].persistentID)
+        #expect(listViewModel.appliances[0].persistentID == listViewModel2.appliances[0].persistentID)
     }
 
     @Test("Integration: Error handling when repository throws")
@@ -211,8 +212,8 @@ struct ApplianceIntegrationTests {
     func repositoryErrorHandling() async throws {
         // This test verifies error propagation through the stack
         // Since we're using in-memory SwiftData, errors are rare, but we verify the structure
-        let (_, container) = try createTestContainer()
-        let listViewModel = container.presentation.applianceListViewModel
+        let presentation = try presentation
+        let listViewModel = presentation.applianceListViewModel
 
         // Load from fresh container should work
         await listViewModel.loadAppliances()
