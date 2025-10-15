@@ -27,7 +27,7 @@ protocol ApplianceRepository {
 /// SwiftData implementation of ApplianceRepository for local persistence.
 /// Uses @ModelActor for proper thread-safety when accessing SwiftData models.
 @ModelActor
-actor SwiftDataApplianceRepository: ApplianceRepository {
+final actor SwiftDataApplianceRepository: ApplianceRepository {
     /// All saved appliances, sorted by most recent first.
     var appliances: [ApplianceDTO] {
         get async throws {
@@ -35,7 +35,14 @@ actor SwiftDataApplianceRepository: ApplianceRepository {
                 sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
             )
             let models = try modelContext.fetch(descriptor)
-            return models.map { ApplianceDTO(from: $0) }
+            var dtos: [ApplianceDTO] = []
+            
+            for model in models {
+                let dto = await ApplianceDTO.from(model)
+                dtos.append(dto)
+            }
+            
+            return dtos
         }
     }
 
@@ -51,7 +58,7 @@ actor SwiftDataApplianceRepository: ApplianceRepository {
         )
         modelContext.insert(appliance)
         try modelContext.save()
-        return ApplianceDTO(from: appliance)
+        return await ApplianceDTO.from(appliance)
     }
 
     /// Removes an appliance from SwiftData storage.
@@ -65,3 +72,4 @@ actor SwiftDataApplianceRepository: ApplianceRepository {
         try modelContext.save()
     }
 }
+

@@ -29,7 +29,7 @@ struct ApplianceIdentifierApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ApplianceListView()
                 .environment(AppDependencyContainer(modelContainer: sharedModelContainer))
         }
         .modelContainer(sharedModelContainer)

@@ -12,9 +12,11 @@ import SwiftData
 /// Provides repository implementations for persistence, ML inference, and energy data.
 final class DataFactory {
     private let modelContainer: ModelContainer
+    private let customMLModelRepository: MLModelRepository?
 
-    init(modelContainer: ModelContainer) {
+    init(modelContainer: ModelContainer, mlModelRepository: MLModelRepository? = nil) {
         self.modelContainer = modelContainer
+        self.customMLModelRepository = mlModelRepository
     }
 
     // MARK: - Repositories
@@ -25,8 +27,9 @@ final class DataFactory {
     }
 
     /// Creates a repository for ML model inference using Vision/CoreML.
+    /// In tests, a custom repository can be injected via the initializer.
     var mlModelRepository: MLModelRepository {
-        CoreMLModelRepository()
+        customMLModelRepository ?? CoreMLModelRepository()
     }
 
     /// Creates a repository for appliance energy consumption lookup.

@@ -90,17 +90,21 @@ struct ApplianceDTO: Sendable, Identifiable {
         let monthlyKWh = dailyKWh * 30
         return monthlyKWh * 0.16
     }
+}
 
+// MARK: Interfaces
+
+extension ApplianceDTO {
     /// Creates a DTO from a SwiftData Appliance model.
     /// - Parameter appliance: The Appliance model to convert
-    init(from appliance: Appliance) {
-        self.id = appliance.id
-        self.persistentID = appliance.persistentModelID
-        self.name = appliance.name
-        self.category = appliance.category
-        self.estimatedWattage = appliance.estimatedWattage
-        self.confidence = appliance.confidence
-        self.timestamp = appliance.timestamp
-        self.imageData = appliance.imageData
+    static func from(_ appliance: Appliance) -> Self {
+        Self(id: appliance.id,
+             persistentID: appliance.persistentModelID,
+             name: appliance.name,
+             category: appliance.category,
+             estimatedWattage: appliance.estimatedWattage,
+             confidence: appliance.confidence,
+             timestamp: appliance.timestamp,
+             imageData: appliance.imageData)
     }
 }

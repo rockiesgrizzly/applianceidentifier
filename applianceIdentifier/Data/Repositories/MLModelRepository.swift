@@ -44,7 +44,18 @@ final class CoreMLModelRepository: MLModelRepository {
     /// Returns the top classification result with confidence score.
     func classify(image: CGImage) async throws -> ClassificationResult {
         return try await withCheckedThrowingContinuation { continuation in
+            // Use a lock to prevent double-resumption when Vision framework errors occur
+            let lock = NSLock()
+            var resumed = false
+
             let request = VNClassifyImageRequest { request, error in
+                lock.lock()
+                defer { lock.unlock() }
+
+                // Guard against double-resumption
+                guard !resumed else { return }
+                resumed = true
+
                 if let error = error {
                     continuation.resume(throwing: error)
                     return
@@ -67,6 +78,13 @@ final class CoreMLModelRepository: MLModelRepository {
             do {
                 try handler.perform([request])
             } catch {
+                lock.lock()
+                defer { lock.unlock() }
+
+                // Guard against double-resumption
+                guard !resumed else { return }
+                resumed = true
+
                 continuation.resume(throwing: error)
             }
         }

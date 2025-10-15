@@ -23,9 +23,11 @@ final class AppDependencyContainer {
 
     /// Initializes the dependency container with a SwiftData model container.
     /// Creates factories from outer to inner layers, maintaining Clean Architecture principles.
-    /// - Parameter modelContainer: The SwiftData ModelContainer for persistence
-    init(modelContainer: ModelContainer) {
-        self.dataFactory = DataFactory(modelContainer: modelContainer)
+    /// - Parameters:
+    ///   - modelContainer: The SwiftData ModelContainer for persistence
+    ///   - mlModelRepository: Optional test ML repository (defaults to CoreMLModelRepository)
+    init(modelContainer: ModelContainer, mlModelRepository: MLModelRepository? = nil) {
+        self.dataFactory = DataFactory(modelContainer: modelContainer, mlModelRepository: mlModelRepository)
         self.domainFactory = DomainFactory(dataFactory: dataFactory)
         self.presentationFactory = PresentationFactory(domainFactory: domainFactory)
     }
